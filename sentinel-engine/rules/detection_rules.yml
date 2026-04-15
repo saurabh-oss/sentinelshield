@@ -1,0 +1,87 @@
+# SentinelShield Detection Rules Configuration
+# These rules are loaded from DB at startup (seeded via init-db.sql)
+# This file serves as documentation and can be used for rule-as-code versioning.
+
+rules:
+  - name: Brute Force Detection
+    type: threshold
+    severity: high
+    conditions:
+      metric: failed_auth
+      threshold: 10
+      window_seconds: 60
+      group_by: ip_address
+    resolver: block_ip
+    description: >
+      Triggers when more than 10 failed authentication attempts
+      originate from the same IP address within a 60-second window.
+
+  - name: API Rate Abuse
+    type: threshold
+    severity: high
+    conditions:
+      metric: api_requests
+      threshold: 200
+      window_seconds: 60
+      group_by: ip_address
+    resolver: rate_limit
+    description: >
+      Triggers when a single IP exceeds 200 API requests per minute,
+      indicating scraping, enumeration, or denial-of-service activity.
+
+  - name: Data Exfiltration
+    type: zscore
+    severity: critical
+    conditions:
+      metric: response_bytes
+      zscore_threshold: 3.0
+      window_size: 200
+    resolver: circuit_break
+    description: >
+      Detects anomalously large API response payloads using
+      z-score deviation from rolling baseline.
+
+  - name: Credential Stuffing
+    type: sequence
+    severity: critical
+    conditions:
+      pattern: multi_credential_single_source
+      unique_emails_threshold: 5
+      window_seconds: 30
+    resolver: account_lockout
+    description: >
+      Detects automated credential stuffing by identifying
+      multiple unique email login attempts from the same IP.
+
+  - name: Post-Release Regression
+    type: canary
+    severity: high
+    conditions:
+      metric: error_rate
+      deviation_multiplier: 2.5
+      window_seconds: 600
+    resolver: rollback
+    description: >
+      Monitors error rate after deployments and triggers rollback
+      if error rate exceeds 2.5x the pre-deployment baseline.
+
+  - name: Schema Drift
+    type: schema
+    severity: medium
+    conditions:
+      allowed_drift_pct: 5
+    resolver: pause_ingestion
+    description: >
+      Detects unexpected fields in data ingestion payloads
+      exceeding 5% drift from the defined schema.
+
+  - name: Privilege Escalation
+    type: rule
+    severity: critical
+    conditions:
+      event_type: role_change
+      requires_field: approval_token
+    resolver: revert_escalate
+    description: >
+      Detects role changes performed without a valid approval token,
+      automatically reverts the change and escalates to security.

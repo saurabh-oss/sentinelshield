@@ -1,0 +1,95 @@
+{
+  "id": null,
+  "uid": "sentinel-nexuscloud",
+  "title": "NexusCloud Commerce — SentinelShield Monitoring",
+  "tags": ["sentinelshield", "nexuscloud"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(nexuscloud_requests_total[1m])",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Request Latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(nexuscloud_request_duration_seconds_bucket[5m]))",
+          "legendFormat": "p95 latency"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" }, "unit": "s" }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Auth Failures",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(nexuscloud_auth_failures_total[1m])",
+          "legendFormat": "{{client_ip}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "fixedColor": "red", "mode": "fixed" }, "unit": "ops" }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Error Rate (5xx)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(nexuscloud_errors_total[1m]))",
+          "legendFormat": "5xx errors/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "fixedColor": "red", "mode": "fixed" }, "unit": "ops" }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Active Requests",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        {
+          "expr": "nexuscloud_active_requests",
+          "legendFormat": "Active"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "max": 200
+        }
+      }
+    }
+  ]
+}

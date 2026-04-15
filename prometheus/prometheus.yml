@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'nexuscloud-api'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['nexuscloud-api:8000']
+        labels:
+          service: 'nexuscloud-commerce'
+          environment: 'demo'
+
+  - job_name: 'sentinel-engine'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['sentinel-engine:8001']
+        labels:
+          service: 'sentinel-engine'
+          environment: 'demo'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
